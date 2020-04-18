@@ -1,4 +1,3 @@
-
 """IPython 3.1, Python 3.4, Windows 8.1"""
 import pandas as pd
 import urllib as u
