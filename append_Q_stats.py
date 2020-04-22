@@ -11,7 +11,13 @@ import pbratio4
 def analyse_data_from_yahoo():
     with open("sp500tickers.pickle", "rb") as f:
         tickers = pickle.load(f)
-    analysis = pd.DataFrame(columns=['drop ratio','pb','roe','market cap','price on 04-09','Debt/Eq','Dividend %'])
+    label_list=['drop_ratio','price_on_0409','pb','roe','market_cap','Debt_Eq','Dividend_','Corre_spy']
+    analysis = pd.DataFrame(columns=label_list)
+    correlation = pd.DataFrame(columns=['spy', 'other'])
+    spy = pd.read_csv('stock_dfs/{}.csv'.format('spy'), parse_dates=True, index_col=0)
+    correlation['spy']=spy['Adj Close']
+    #print(analysis)
+    #print(correlation)
     #analysis = pd.DataFrame(columns=['tick', 'ratio'])
     i=0
     for ticker in tickers:
@@ -20,27 +26,31 @@ def analyse_data_from_yahoo():
         ticker = ticker[:-1]
         if os.path.exists('stock_dfs/{}.csv'.format(ticker)):
             df = pd.read_csv('stock_dfs/{}.csv'.format(ticker), parse_dates=True, index_col=0)
-            #print(ticker,df.shape,df.shape[0] )
+            correlation['other']=df['Adj Close']
+            print(ticker,df.shape,df.shape[0] )
             df['10ma']=(df['Adj Close'].rolling(window=10, min_periods=0).mean())
             #analysis.loc[i] =  [ticker  ,  df['10ma'].iloc[320]/df['10ma'].iloc[1] ]
             #analysis[ticker]  = [  df['10ma'].iloc[320]/df['10ma'].iloc[1] ]
-            if df.shape[0]==321:
-                analysis.loc[ticker,'drop ratio']  = [  df.loc['2020-04-09','10ma']/df.loc['2020-01-06','10ma'] ]
-                analysis.loc[ticker,'price on 04-09']  = [  df.loc['2020-04-09','Adj Close'] ]
+            if df.shape[0]==328:
+                analysis.loc[ticker,label_list[0]]  =   df.loc['2020-04-09','10ma']/df.loc['2020-01-06','10ma'] 
+                analysis.loc[ticker,label_list[1]]  =   df.loc['2020-04-09','Adj Close'] 
+                analysis.loc[ticker,label_list[7]]  = correlation.corr().loc['spy','other'] 
             print(ticker,i)
             try:
                 temp=pbratio4.get_price2book(ticker)    
-                analysis.loc[ticker,'pb']  = [ temp[0] ]
-                analysis.loc[ticker,'roe']  = [ temp[1] ]
-                analysis.loc[ticker,'market cap']  = [ temp[2] ]
-                analysis.loc[ticker,'Debt/Eq']  = [ temp[3] ]
-                analysis.loc[ticker,'Dividend %']  = [ temp[4] ]
+                print(temp)
+                analysis.loc[ticker,label_list[2]]  =  temp[0] 
+                analysis.loc[ticker,label_list[3]]  =  temp[1] 
+                analysis.loc[ticker,label_list[4]]  =  temp[2] 
+                analysis.loc[ticker,label_list[5]]  =  temp[3] 
+                analysis.loc[ticker,label_list[6]]  =  temp[4] 
             except:
                 print("An exception occurred")
         else:
             print('Already have {}'.format(ticker))
 
-
+        #if i==2:
+        #    break 
     analysis.to_csv("500_analysis.csv")
 
 analyse_data_from_yahoo()

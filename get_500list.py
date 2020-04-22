@@ -26,13 +26,14 @@ def save_sp500_tickers():
     tickers = []
     for row in table.findAll('tr')[1:]:
         ticker = row.findAll('td')[0].text
+        print(ticker)
         tickers.append(ticker)
+    tickers.append("spy ")
     with open("sp500tickers.pickle", "wb") as f:
         pickle.dump(tickers, f)
     return tickers
 
 
-# save_sp500_tickers()
 def get_data_from_yahoo(reload_sp500=False):
     if reload_sp500:
         tickers = save_sp500_tickers()
@@ -71,6 +72,7 @@ def get_data_from_yahoo(reload_sp500=False):
 #            analysis.loc[i] =  [ticker  ,  df['10ma'].iloc[320]/df['10ma'].iloc[1] ]
 #            print(analysis)
 
+#save_sp500_tickers()
 get_data_from_yahoo()
 
 
