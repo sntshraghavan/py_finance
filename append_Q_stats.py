@@ -11,7 +11,7 @@ import pbratio4
 def analyse_data_from_yahoo():
     with open("sp500tickers.pickle", "rb") as f:
         tickers = pickle.load(f)
-    label_list=['drop_ratio','price_on_0409','pb','roe','market_cap','Debt_Eq','Dividend_','Corre_spy']
+    label_list=['drop_ratio','price_on_0409','pb','roe','market_cap','Debt_Eq','Dividend_','Corre_spy_last200','Corre_spy_last100']
     analysis = pd.DataFrame(columns=label_list)
     correlation = pd.DataFrame(columns=['spy', 'other'])
     spy = pd.read_csv('stock_dfs/{}.csv'.format('spy'), parse_dates=True, index_col=0)
@@ -34,7 +34,8 @@ def analyse_data_from_yahoo():
             if df.shape[0]==328:
                 analysis.loc[ticker,label_list[0]]  =   df.loc['2020-04-09','10ma']/df.loc['2020-01-06','10ma'] 
                 analysis.loc[ticker,label_list[1]]  =   df.loc['2020-04-09','Adj Close'] 
-                analysis.loc[ticker,label_list[7]]  = correlation.corr().loc['spy','other'] 
+                analysis.loc[ticker,label_list[7]]  = correlation.tail(200).corr().loc['spy','other'] 
+                analysis.loc[ticker,label_list[8]]  = correlation.tail(100).corr().loc['spy','other'] 
             print(ticker,i)
             try:
                 temp=pbratio4.get_price2book(ticker)    

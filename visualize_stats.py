@@ -40,20 +40,27 @@ def vis_data_from_yahoo():
    #     else:
    #         print('Already have {}'.format(ticker))
 
-
    # analysis.to_csv("500_analysis.csv")
-   df = pd.read_csv('500_analysis3.csv')
-   print(df)
+   df = pd.read_csv('500_analysis.csv')
+   df2=df.sort_values(by=['drop_ratio']) 
+   df2.to_csv("500_analysis_drop_ratio.csv")
+   df['market_cap'].to_csv("500_analysis_mc.csv")
+
    for column in df:
     print(column)
+    df[column] = pd.to_numeric(df[column],errors='coerce')
     fig, ax = plt.subplots()
-    df[column].hist(bins=30).get_figure()
+    df[column].hist(bins=10).get_figure()
+    plt.ylabel(column,fontsize=15)
     fig.savefig(column+'.pdf')
     try:
         print('average:',df[column].mean(axis=None, skipna=True)) 
         print('std:',df[column].std(axis=None, skipna=True)) 
+        print('min:',df[column].min()) 
+        print('max:',df[column].max()) 
     except:
         print("error")
+
 vis_data_from_yahoo()
 
 
