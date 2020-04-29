@@ -40,24 +40,33 @@ def find_data_cutoff(orig,percentage):
 def filter_data(df,criteria):
     #for index, row in df.iterrows(): 
     for key, value in criteria.items():  
-        print(key)
-        print(value)
-        df=df.loc[df[key] > value[0]]
-    df.to_csv("filtered.csv")
+        if value[1]:
+            df=df.loc[df[key] > value[0]]
+        else:
+            df=df.loc[df[key] < value[0]]
+    print(df)
+    df['values']=df['pb']*0+10
+    df['date']=dt.date.today()
+    df[['values','date']].to_csv("filtered.csv")
 
-#vis_data()
-df = pd.read_csv('500_analysis.csv')
+
+
+
+
+df = pd.read_csv('500_analysis.csv', index_col=[0])
 for column in df:
-    df[column] = pd.to_numeric(df[column],errors='coerce')
+    if column!="":
+        df[column] = pd.to_numeric(df[column],errors='coerce')
 name=df.columns 
 criteria= {}
-list_per=[.9,.9]
+list_per=[.1,.5]
 list_name=["drop_ratio","market_cap"]
-list_ass=[True,True]
+list_ass=[False,True]  # False  < ;   True > 
 #for arg in list_name:
 i=0
 while i < len(list_name):
     arg=list_name[i]
     criteria[arg]=[find_data_cutoff(df[arg],list_per[i]),list_ass[i]]
     i=i+1
+print(criteria)
 filter_data(df,criteria)
