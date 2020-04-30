@@ -31,9 +31,9 @@ def analyse_data_from_yahoo():
             df['10ma']=(df['Adj Close'].rolling(window=10, min_periods=0).mean())
             #analysis.loc[i] =  [ticker  ,  df['10ma'].iloc[320]/df['10ma'].iloc[1] ]
             #analysis[ticker]  = [  df['10ma'].iloc[320]/df['10ma'].iloc[1] ]
-            if df.shape[0]==328:
-                analysis.loc[ticker,label_list[0]]  =   df.loc['2020-04-09','10ma']/df.loc['2020-01-06','10ma'] 
-                analysis.loc[ticker,label_list[1]]  =   df.loc['2020-04-09','Adj Close'] 
+            if df.shape[0]>328:
+                analysis.loc[ticker,label_list[0]]  =   df.loc['2020-04-29','10ma']/df.loc['2020-02-14','10ma'] 
+                analysis.loc[ticker,label_list[1]]  =   df.loc['2020-04-29','Adj Close'] 
                 analysis.loc[ticker,label_list[7]]  = correlation.tail(200).corr().loc['spy','other'] 
                 analysis.loc[ticker,label_list[8]]  = correlation.tail(100).corr().loc['spy','other'] 
             print(ticker,i)

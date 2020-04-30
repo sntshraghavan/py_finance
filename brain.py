@@ -59,7 +59,7 @@ for column in df:
         df[column] = pd.to_numeric(df[column],errors='coerce')
 name=df.columns 
 criteria= {}
-list_per=[.1,.5]
+list_per=[.1,.2]
 list_name=["drop_ratio","market_cap"]
 list_ass=[False,True]  # False  < ;   True > 
 #for arg in list_name:

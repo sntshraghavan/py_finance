@@ -1,6 +1,7 @@
 import bs4 as bs
 import datetime as dt
 import os
+import math
 import pandas as pd
 import pandas_datareader.data as web
 import pickle
@@ -8,46 +9,13 @@ import requests
 import pbratio4 
 import matplotlib.pyplot as plt 
 
-def vis_data_from_yahoo():
-   # with open("sp500tickers.pickle", "rb") as f:
-   #     tickers = pickle.load(f)
-   # analysis = pd.DataFrame(columns=['drop ratio','pb','roe','market cap','price on 04-09','Debt/Eq','Dividend %'])
-   # #analysis = pd.DataFrame(columns=['tick', 'ratio'])
-   # i=0
-   # for ticker in tickers:
-   #     i=i+1
-   #     #print(df.shape)
-   #     ticker = ticker[:-1]
-   #     if os.path.exists('stock_dfs/{}.csv'.format(ticker)):
-   #         df = pd.read_csv('stock_dfs/{}.csv'.format(ticker), parse_dates=True, index_col=0)
-   #         #print(ticker,df.shape,df.shape[0] )
-   #         df['10ma']=(df['Adj Close'].rolling(window=10, min_periods=0).mean())
-   #         #analysis.loc[i] =  [ticker  ,  df['10ma'].iloc[320]/df['10ma'].iloc[1] ]
-   #         #analysis[ticker]  = [  df['10ma'].iloc[320]/df['10ma'].iloc[1] ]
-   #         if df.shape[0]==321:
-   #             analysis.loc[ticker,'drop ratio']  = [  df.loc['2020-04-09','10ma']/df.loc['2020-01-06','10ma'] ]
-   #             analysis.loc[ticker,'price on 04-09']  = [  df.loc['2020-04-09','Adj Close'] ]
-   #         print(ticker,i)
-   #         try:
-   #             temp=pbratio4.get_price2book(ticker)    
-   #             analysis.loc[ticker,'pb']  = [ temp[0] ]
-   #             analysis.loc[ticker,'roe']  = [ temp[1] ]
-   #             analysis.loc[ticker,'market cap']  = [ temp[2] ]
-   #             analysis.loc[ticker,'Debt/Eq']  = [ temp[3] ]
-   #             analysis.loc[ticker,'Dividend %']  = [ temp[4] ]
-   #         except:
-   #             print("An exception occurred")
-   #     else:
-   #         print('Already have {}'.format(ticker))
-
-   # analysis.to_csv("500_analysis.csv")
+def vis_data():
    df = pd.read_csv('500_analysis.csv')
    df2=df.sort_values(by=['drop_ratio']) 
    df2.to_csv("500_analysis_drop_ratio.csv")
    df['market_cap'].to_csv("500_analysis_mc.csv")
 
    for column in df:
-    print(column)
     df[column] = pd.to_numeric(df[column],errors='coerce')
     fig, ax = plt.subplots()
     df[column].hist(bins=10).get_figure()
@@ -55,12 +23,41 @@ def vis_data_from_yahoo():
     fig.savefig(column+'.pdf')
     try:
         print('average:',df[column].mean(axis=None, skipna=True)) 
+        print('median:',df[column].median()) 
         print('std:',df[column].std(axis=None, skipna=True)) 
         print('min:',df[column].min()) 
         print('max:',df[column].max()) 
     except:
         print("error")
 
-vis_data_from_yahoo()
+def find_data_cutoff(orig,percentage):
+   ascend_=True
+   df = pd.to_numeric(orig,errors='coerce')
+   df=df.sort_values(ascending=ascend_)
+   #df.to_csv(column+"count.csv")
+   return(df.iloc[math.floor((500-df.isna().sum())*percentage)])
 
+def filter_data(df,criteria):
+    #for index, row in df.iterrows(): 
+    for key, value in criteria.items():  
+        print(key)
+        print(value)
+        df=df.loc[df[key] > value[0]]
+    df.to_csv("filtered.csv")
 
+#vis_data()
+df = pd.read_csv('500_analysis.csv')
+for column in df:
+    df[column] = pd.to_numeric(df[column],errors='coerce')
+name=df.columns 
+criteria= {}
+list_per=[.9,.9]
+list_name=["drop_ratio","market_cap"]
+list_ass=[True,True]
+#for arg in list_name:
+i=0
+while i < len(list_name):
+    arg=list_name[i]
+    criteria[arg]=[find_data_cutoff(df[arg],list_per[i]),list_ass[i]]
+    i=i+1
+filter_data(df,criteria)

@@ -14,9 +14,16 @@ In this example I'm grabbing Price-to-Book (mrq) ratio
 
 def get_price2book( symbol ):
     try:
-        url = r'http://finviz.com/quote.ashx?t={}'\
+        url = r'https://finviz.com/quote.ashx?t={}'\
         				.format(symbol.lower())
-        html = u.request.urlopen(url).read()
+        #html = u.request.urlopen(url).read()
+        print('1')
+        request=urllib.request.Request(url,headers={'User-Agent' : "Magic Browser"}) #The assembled request
+        print('1')
+        response = urllib.request.urlopen(request)
+        print('2')
+
+        html=response.read()
         soup = bs(html, 'lxml')
         # Change the text below to get a diff metric
         pb =  soup.find(text = r'P/B')
@@ -47,4 +54,4 @@ Run a loop assigning the function output to the series
 #for sym in stock_list:
 #	p2b_series[sym] = get_price2book(sym)
 #print(p2b_series)
-#print(p2b_series['MMM'][0])
+##print(p2b_series['MMM'][0])
