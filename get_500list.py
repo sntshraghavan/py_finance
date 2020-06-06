@@ -3,7 +3,6 @@ import datetime as dt
 import os
 import pandas as pd
 import pandas_datareader.data as web
-import pickle
 import requests
 
 
@@ -27,11 +26,11 @@ def save_sp500_tickers():
     for row in table.findAll('tr')[1:]:
         ticker = row.findAll('td')[0].text
         print(ticker)
-        tickers.append(ticker)
-    tickers.append("spy ")
-    with open("sp500tickers.pickle", "wb") as f:
-        pickle.dump(tickers, f)
-    return tickers
+        tickers.append(ticker.rstrip())
+    tickers.append("spy")
+    tick_df = pd.DataFrame(tickers) 
+    tick_df.to_csv('sp500tickers.csv')
+    return "done"
 
 
 def get_data_from_yahoo(reload_sp500=False):
@@ -42,15 +41,15 @@ def get_data_from_yahoo(reload_sp500=False):
         #print(tickers)
 	
     else:
-        with open("sp500tickers.pickle", "rb") as f:
-            tickers = pickle.load(f)
+        ticker_csv = pd.read_csv('sp500tickers.csv', parse_dates=True, index_col=0)
+    
     if not os.path.exists('stock_dfs'):
         os.makedirs('stock_dfs')
     start = dt.datetime(2019, 1, 1)
     end = dt.date.today() #datetime(2020, 4, 18)
-    for ticker in tickers:
+    for ticker in ticker_csv.iloc[:,0]:
         # just in case your connection breaks, we'd like to save our progress!
-        ticker = ticker[:-1]
+        #ticker = ticker[:-1]
         if not os.path.exists('stock_dfs/{}.csv'.format(ticker)):
             print(ticker+" downloading") 
             df = web.DataReader(ticker, 'yahoo', start, end)
@@ -72,7 +71,7 @@ def get_data_from_yahoo(reload_sp500=False):
 #            analysis.loc[i] =  [ticker  ,  df['10ma'].iloc[320]/df['10ma'].iloc[1] ]
 #            print(analysis)
 
-#save_sp500_tickers()
+save_sp500_tickers()
 get_data_from_yahoo()
 
 
