@@ -18,7 +18,8 @@ def price_change(p1, p2):
 def make_transaction(price, share, cash, totalshare):
     transaction = price * share
     if transaction > cash:
-        return "Not enough balance"
+        print("not enough cash")
+        return None
     else:
         return transaction, cash - transaction, totalshare + share
 
@@ -39,10 +40,19 @@ def sell_all_stocks(price, totalshares):
     return price * totalshares
 
 
-def draw_price_trend(date, closeprice):
-    plt.plot(date, closeprice)
-    plt.xticks(date[::60])
-    plt.xticks(rotation=45)
+def draw_price_trend(date, closeprice, accprofit, target):
+    # ax1 = plt.subplot(1, 2, 1)
+    # ax2 = plt.subplot(1, 2, 2)
+    fig, ax1 = plt.subplots()
+    # fig, ax3 = plt.subplots()
+    ax2 = ax1.twinx()
+    ax1.plot(date, closeprice, 'b-')
+    ax2.plot(date, accprofit, 'r-')
+    # ax3.plot(date, target, 'g-')
+    ax1.set_xticks(date[::180])
+    # ax3.set_xticks(date[::180])
+    # plt.xticks(date[::60])
+    # plt.xticks(rotation=45)
     plt.show()
 
 
@@ -59,7 +69,7 @@ def print_tran_stats(accProfit, cashPosition, totalShares, costPerShare, current
              currentPrice * totalShares, upperBound, lowerBound))
 
 
-def main(target_ticker):
+def main(target_ticker, threashold, period=0):
     """
     0. fix profit
     1. sell all at once
@@ -69,12 +79,14 @@ def main(target_ticker):
     """
 
     df = load_price(target_ticker)
-    closePrice = list(df['Close'])
-    date = list(df['Date'])
+    closePrice = list(df['Close'])[-int(period):]
+    date = list(df['Date'])[-int(period):]
+    accuProfitForChart = [0]
 
     budget = 2000
     cashPosition = budget
     targetProfit = 100
+    targetProfitForChart = [targetProfit]
     bearableLoss = 90
     totalShares = 0
     sharePerTransaction = 10
@@ -101,7 +113,7 @@ def main(target_ticker):
         currentPrice = closePrice[i]
 
         # buy
-        if price_change(prevPrice, currentPrice) >= 0.02:
+        if price_change(prevPrice, currentPrice) >= float(threashold):
             if cashPosition >= currentPrice * sharePerTransaction:
                 transaction, cashPosition, totalShares = make_transaction(currentPrice, sharePerTransaction,
                                                                           cashPosition, totalShares)
@@ -137,11 +149,17 @@ def main(target_ticker):
             if budget < cashPosition:
                 budget = cashPosition
 
-            if currentPrice > targetProfit:
-                targetProfit = currentPrice
+            if currentPrice > targetProfit * 1.2:
+                targetProfit = currentPrice * 1.5
                 bearableLoss = 0.8 * targetProfit
 
+            # if currentPrice < targetProfit * 0.8:
+            #     targetProfit = currentPrice * 0.7
+            #     bearableLoss = 0.8 * targetProfit
+
         prevPrice = currentPrice
+        accuProfitForChart.append(accProfit)
+        targetProfitForChart.append(targetProfit)
 
     print("Last trading date: " + date[-1])
     print("Final shares on hold: %d" % totalShares)
@@ -155,10 +173,13 @@ def main(target_ticker):
     # for k, v in sellPrice.items():
     #     print(k, v)
 
-    # draw_price_trend(date, closePrice)
+    draw_price_trend(date, closePrice, accuProfitForChart, targetProfitForChart)
 
 
 if __name__ == "__main__":
-    # example: python strat.py AAPL
+    # example: python strat.py AAPL 0.02
+    # example: python strat.py STX 0.025 or python strat.py STX 0.025 50
     ticker = sys.argv[1]
-    main(ticker)
+    buyThreshold = sys.argv[2]
+    backTestPeriod = sys.argv[3]
+    main(ticker, buyThreshold, backTestPeriod)
