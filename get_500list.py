@@ -106,7 +106,7 @@ def get_data_from_yahoo(reload_sp500=False):
 #            analysis.loc[i] =  [ticker  ,  df['10ma'].iloc[320]/df['10ma'].iloc[1] ]
 #            print(analysis)
 
-#save_sp500_tickers()
+save_sp500_tickers()
 get_data_from_yahoo()
 
 

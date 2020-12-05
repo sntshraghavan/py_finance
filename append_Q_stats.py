@@ -8,20 +8,24 @@ import pbratio4
 
 
 def analyse_data_from_yahoo():
-    ticker_csv = pd.read_csv('sp500tickers.csv', parse_dates=True, index_col=0)
+    ticker_csv = pd.read_csv('sp500tickers.csv', parse_dates=True,  header=None)
     label_list=['drop_ratio','price_on_0409','pb','roe','market_cap','Debt_Eq','Dividend_','profit_margin','Corre_spy_last200','Corre_spy_last100']
     analysis = pd.DataFrame(columns=label_list)
     correlation = pd.DataFrame(columns=['spy', 'other'])
-    spy = pd.read_csv('stock_dfs/{}.csv'.format('spy'), parse_dates=True, index_col=0)
+    spy = pd.read_csv('stock_dfs/{}.csv'.format('SPY'), parse_dates=True, index_col=0)
     correlation['spy']=spy['Adj Close']
     #print(analysis)
     #print(correlation)
     #analysis = pd.DataFrame(columns=['tick', 'ratio'])
     i=0
-    for ticker in ticker_csv.iloc[:,0]:
+    print(ticker_csv)
+    for row_content, row in ticker_csv.iterrows():
+        ticker=row[0]
+        print("now working on:",ticker)
         i=i+1
         if os.path.exists('stock_dfs/{}.csv'.format(ticker)):
             df = pd.read_csv('stock_dfs/{}.csv'.format(ticker), parse_dates=True, index_col=0)
+            df= df[~df.index.duplicated(keep='first')]
             correlation['other']=df['Adj Close']
             print(ticker,df.shape,df.shape[0] )
             df['10ma']=(df['Adj Close'].rolling(window=10, min_periods=0).mean())
